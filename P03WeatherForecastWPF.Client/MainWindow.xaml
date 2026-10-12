@@ -1,0 +1,42 @@
+<Window x:Class="P03WeatherForecastWPF.Client.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:P03WeatherForecastWPF.Client"
+        mc:Ignorable="d"
+        Title="P03 – Pogoda (Open-Meteo)" Height="420" Width="640">
+
+    <DockPanel Margin="8">
+
+        <!-- Lewa kolumna: wyszukiwanie miasta -->
+        <StackPanel DockPanel.Dock="Left" Width="260" Margin="0,0,8,0">
+            <Label Content="Miasto:" />
+            <TextBox x:Name="txtCity" Text="Warszawa" />
+            <Button x:Name="btnSearch" Content="Szukaj" Click="btnSearch_Click" Margin="0,4" />
+            <ListBox x:Name="lbCities" Height="260"
+                     DisplayMemberPath="FullName"
+                     SelectionChanged="lbCities_SelectionChanged" />
+        </StackPanel>
+
+        <!-- Prawa część: pogoda dla wybranego miasta -->
+        <StackPanel>
+            <Label Content="Wybrane miasto:" FontWeight="Bold" />
+            <Label x:Name="lblCityName" Content="—" />
+
+            <Label Content="Temperatura:" FontWeight="Bold" />
+            <Label x:Name="lblTemperature" Content="—" FontSize="28" />
+
+            <Label Content="Wiatr:" FontWeight="Bold" />
+            <Label x:Name="lblWind" Content="—" />
+
+            <Label Content="Opis:" FontWeight="Bold" />
+            <Label x:Name="lblDescription" Content="—" />
+
+            <Label Content="Czas pomiaru:" FontWeight="Bold" />
+            <Label x:Name="lblTime" Content="—" />
+
+            <TextBlock x:Name="tbStatus" Foreground="DarkRed" TextWrapping="Wrap" Margin="4" />
+        </StackPanel>
+    </DockPanel>
+</Window>

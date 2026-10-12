@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="README.md" />
+    <File Path="INSTRUKCJA_PROWADZACY.md" />
+    <File Path="INSTRUKCJA_STUDENT.md" />
+  </Folder>
+  <Project Path="P01Pogoda/P01Pogoda.csproj" />
+  <Project Path="P02WeatherForecast/P02WeatherForecast.csproj" />
+  <Project Path="P03WeatherForecastWPF.Client/P03WeatherForecastWPF.Client.csproj" />
+</Solution>

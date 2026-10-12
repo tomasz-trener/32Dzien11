@@ -1,27 +1,69 @@
-# Dzień 11: instrukcja dla uczestnika
+# Dzień 11: Instrukcja
 
-> **Co dziś zbudujesz:** trzy projekty w .NET 10.
-> 1. **P01Pogoda** – aplikacja konsolowa, która pobiera temperaturę z internetu i przelicza jednostki.
-> 2. **P02WeatherForecast** – aplikacja WPF, w której zobaczysz, czym różni się kod synchroniczny od asynchronicznego.
-> 3. **P03WeatherForecastWPF.Client** – klient usługi pogodowej Open‑Meteo (JSON). Ten projekt będziesz rozwijać przez kolejne 7 dni.
+> **Technologia:** .NET 10 (LTS), C# 14, Visual Studio 2026, solucja `32Dzien11.slnx`.
+> **Punkt startowy:** dni 1–10 to .NET Framework i Windows Forms. Od dziś pracujemy w **.NET (dawniej .NET Core)**: wieloplatformowym, budowanym z linii poleceń, z nowym desktopem **WPF**.
+> **Cel dnia:** trzy projekty, od najprostszego do „prawdziwej” aplikacji:
+> 1. **P01Pogoda** – aplikacja konsolowa: `HttpClient`, wyrażenia regularne, CLI `dotnet`, przeliczanie jednostek.
+> 2. **P02WeatherForecast** – aplikacja WPF: kontenery, style, siedem wariantów kodu synchronicznego i asynchronicznego.
+> 3. **P03WeatherForecastWPF.Client** – klient usługi pogodowej Open‑Meteo (JSON, konfiguracja). Ten projekt rozwijamy przez kolejne dni (12–18), więc dzisiejsze decyzje zostają.
 >
-> Pracuj po kolei. Każda sekcja ma punkt **Sprawdź** – nie idź dalej, dopóki nie działa.
+> Pracujemy po kolei. Każda sekcja ma punkt **Sprawdzamy** – nie idziemy dalej, dopóki nie działa.
 
-## Zanim zaczniesz
+## Jak korzystać z tej instrukcji
 
-**Potrzebujesz:**
+- Bloki kodu są **gotowe do skopiowania w całości**. Nad blokiem (w pierwszej linii komentarza) jest ścieżka pliku: zastępujemy całą zawartość tego pliku.
+- Fragmenty **Dlaczego tak** wyjaśniają decyzje. Na tych decyzjach opierają się kolejne dni.
+- Fragmenty **Pokaz** opisują, co warto zobaczyć na ekranie (w przeglądarce, w Visual Studio, w uruchomionej aplikacji), żeby zrozumieć mechanizm, a nie tylko przepisać kod.
+- Fragmenty **Ulepszenie** mówią, co robimy **inaczej niż w edycjach 26/31** kursu. Tamto działało, to jest poprawka lub nowsza praktyka.
+- Jeśli coś nie działa, zaglądamy do **Częste problemy** na końcu sekcji.
+
+**Gotowy kod** jest w repozytorium `32Dzien11`, ale najwięcej uczy pisanie go samodzielnie od zera.
+
+## Plan dnia (orientacyjnie)
+
+| Blok | Temat | Czas |
+|---|---|---|
+| 0 | Wstęp: .NET Framework a .NET, po co nam to, mapa dni 11–18 | 20 min |
+| 1 | CLI `dotnet`: solucja i projekt z konsoli, P01 „Hello” | 25 min |
+| 2 | P01: HttpClient, wttr.in, regex, przeliczanie jednostek | 50 min |
+| 3 | P02: nowy projekt WPF, kontenery (DockPanel, Grid, StackPanel), menu, obrazek | 45 min |
+| 4 | P02: style i zasoby (Application / Window, BasedOn) | 30 min |
+| 5 | P02: serwis synchroniczny i zamrożone okno | 20 min |
+| 6 | P02: siedem wariantów asynchronicznych | 75 min |
+| 7 | P03: Open‑Meteo w przeglądarce, modele z JSON, serwis, UI | 75 min |
+| 8 | P03: konfiguracja `appsettings.json` | 20 min |
+| 9 | Podsumowanie, pytania, commit | 15 min |
+
+Przerwy po blokach 2, 4 i 6.
+
+## Zanim zaczniemy
+
+**Potrzebujemy:**
 
 - Visual Studio 2026 z workloadem **.NET desktop development** (albo VS Code + .NET 10 SDK).
-- .NET 10 SDK: w terminalu `dotnet --version` ma pokazać `10.0.x`. Jeśli nie, pobierz z https://dotnet.microsoft.com/download/dotnet/10.0.
-- Dostęp do internetu (usługi `wttr.in` i `open-meteo.com`).
+- .NET 10 SDK. W **Developer PowerShell** (Visual Studio: **View → Terminal**) sprawdzamy:
 
-**Jak korzystać z tej instrukcji:**
+```powershell
+dotnet --version
+dotnet --list-sdks
+```
 
-- Bloki kodu wklejasz **w całości** do pliku, którego ścieżka jest w pierwszej linii komentarza.
-- Fragmenty oznaczone **Dlaczego tak** wyjaśniają decyzje. Przeczytaj je, bo na tych decyzjach opierają się kolejne dni.
-- Jeśli coś nie działa, zajrzyj do **Częste problemy** na końcu sekcji.
+Ma być `10.0.x`. Jeśli nie ma, instalujemy .NET 10 SDK z https://dotnet.microsoft.com/download/dotnet/10.0 albo przez Visual Studio Installer (workload **.NET desktop development**).
 
-**Gotowy kod** jest w repozytorium `tomasz-trainer/32Dzien11`, ale najwięcej nauczysz się, pisząc go sam.
+- Dostęp do internetu. Sprawdzamy w przeglądarce, że działają usługi, z których dziś korzystamy:
+  - `https://wttr.in/Warszawa?format=%t&m` → np. `+9°C`
+  - `https://geocoding-api.open-meteo.com/v1/search?name=Warszawa&count=3&language=pl&format=json` → JSON z listą miast
+  - `https://api.open-meteo.com/v1/forecast?latitude=52.23&longitude=21.01&current=temperature_2m,wind_speed_10m,weather_code&timezone=auto` → JSON z polem `current`
+- Pusty folder `32Dzien11` otwarty w terminalu.
+- Dowolny obrazek PNG jako `Logo.png` (w repozytorium jest w `P02WeatherForecast/Images`).
+
+## Dane testowe (używamy zawsze tych samych)
+
+| Gdzie | Wartość |
+|---|---|
+| P01, miasto | `Warszawa`, `New York`, `Tokio`; błąd: `xyzxyz` (wttr.in zwraca tekst bez temperatury) |
+| P02, lista miast | `Warszawa`, `Kraków`, `Gdańsk`, `Berlin`, `Paryż`, `Tokio` (ustawione w kodzie) |
+| P03, miasto | `Warszawa` (pierwszy wynik: Warszawa, Województwo mazowieckie), `Kraków` (pokazuje też Krakow w Wisconsin – dobra okazja do rozmowy o geocodingu), `xyzxyz` (brak wyników) |
 
 ---
 
@@ -29,7 +71,7 @@
 
 ### Co to jest .NET (dawniej .NET Core)?
 
-Przez 10 dni używaliśmy **.NET Framework**: działa tylko na Windows, ostatnia wersja to 4.8 i nowych nie będzie. **.NET** (bez „Framework”, od wersji 5) to jego następca:
+Przez 10 dni używaliśmy **.NET Framework**: działa tylko na Windows, ostatnia wersja to 4.8 i nowych nie będzie. **.NET** (bez „Framework”, od wersji 5) to jego następca. Co się zmienia?
 
 | Cecha | .NET Framework | .NET (5, 6, …, 10) |
 |---|---|---|
@@ -39,32 +81,49 @@ Przez 10 dni używaliśmy **.NET Framework**: działa tylko na Windows, ostatnia
 | Rozwój | zakończony | nowa wersja co rok, parzyste = LTS (3 lata wsparcia) |
 | Wydajność | – | kilka razy szybszy, zwłaszcza w web |
 
-Używamy **.NET 10**, bo to aktualna wersja **LTS** (Long Term Support).
+1. **Wieloplatformowość**: ten sam kod działa na Windows, Linuksie, macOS, a z MAUI na Androidzie i iOS. Serwer może stać na Linuksie, bo jest tańszy.
+2. **Narzędzia z linii poleceń**: `dotnet new`, `dotnet build`, `dotnet run`. Visual Studio to tylko wygodna nakładka. Dzięki temu da się budować na serwerze CI (GitHub Actions) albo w kontenerze Docker.
+3. **Jedna wersja co rok**: parzyste są LTS (długie wsparcie, 3 lata). .NET 10 wyszedł w listopadzie 2025 i jest LTS, dlatego go używamy.
+4. **Wydajność**: wielokrotnie szybszy od Frameworka, szczególnie w aplikacjach webowych.
+
+Co **nie** działa tak samo? Część klas z Frameworka jest przestarzała, np. `WebClient`: istnieje, ale kompilator ostrzega, że mamy używać `HttpClient`. Windows Forms działa w .NET, ale nowym standardem desktopu jest **WPF** z językiem **XAML**, a ten sam XAML (z małymi różnicami) zobaczymy w **MAUI** na telefonie.
 
 ### Dlaczego WPF, a nie Windows Forms?
 
-WPF opisuje interfejs w języku **XAML** (XML), oddziela wygląd od logiki i ma wbudowany **binding** danych, który jutro pozwoli nam zastosować wzorzec MVVM. Ten sam XAML i MVVM zobaczysz w dniu 18 w **MAUI** na telefonie. Alternatywy: WinUI 3 (nowoczesny wygląd, tylko Windows), Avalonia (WPF‑podobny, wieloplatformowy, firma trzecia).
+WPF opisuje interfejs w języku **XAML** (XML), oddziela wygląd od logiki i ma wbudowany **binding** danych, który jutro pozwoli nam zastosować wzorzec MVVM. Ten sam XAML i MVVM zobaczymy w dniu 18 w **MAUI** na telefonie.
+
+| Technologia | Zalety | Wady |
+|---|---|---|
+| Windows Forms | prosta, przeciągnij i upuść | tylko Windows, stary model, trudne stylowanie |
+| **WPF** | XAML, style, binding, MVVM, wektorowa grafika | tylko Windows |
+| WinUI 3 | nowoczesny wygląd Windows 11 | młodszy ekosystem, tylko Windows |
+| Avalonia | WPF‑podobny, wieloplatformowy | firma trzecia (choć stabilna) |
+| **MAUI** | jeden kod na Windows, Android, iOS, macOS | mniej kontrolek desktopowych niż WPF |
+
+Uczymy się WPF, bo XAML i MVVM z WPF przenoszą się 1:1 na MAUI (dzień 18) i są zrozumiałe w Avalonii czy WinUI.
 
 ### Plan dni 11–18
 
-| Dzień | Temat |
+| Dzień | Co budujemy |
 |---|---|
-| 11 | konsola i WPF, pobieranie danych z internetu, async |
-| 12 | MVVM i Dependency Injection |
-| 13 | własne Web API i klient |
-| 14 | baza danych: EF Core, migracje, CRUD |
-| 15 | Azure: baza, API, rozpoznawanie mowy |
-| 16 | Razor Pages i MVC |
-| 17 | Blazor WebAssembly |
-| 18 | MAUI |
+| 11 (dziś) | konsola + WPF, pobieramy pogodę z internetu, programowanie asynchroniczne |
+| 12 | MVVM i Dependency Injection w WPF |
+| 13 | własne Web API (serwer) i klient WPF, który z niego korzysta |
+| 14 | baza danych: Entity Framework Core, migracje, CRUD |
+| 15 | chmura Azure: baza, API, rozpoznawanie mowy |
+| 16 | aplikacje webowe: Razor Pages i MVC |
+| 17 | Blazor WebAssembly: C# w przeglądarce |
+| 18 | MAUI: aplikacja na Windows i Androida |
 
-Od dnia 13 budujemy jeden system (sklep), więc **kod z każdego dnia jest punktem wyjścia następnego**.
+Od dnia 13 budujemy jeden system (sklep z produktami), więc **kod z każdego dnia jest punktem wyjścia następnego**.
+
+**Przejście:** zaczynamy od konsoli, bo w .NET nie potrzebujemy Visual Studio, żeby stworzyć i uruchomić projekt.
 
 ---
 
 ## 1. Solucja i projekt z linii poleceń
 
-**Cel:** stworzyć solucję i projekt bez kreatora i zrozumieć, co robią polecenia `dotnet`.
+**Cel:** stworzyć solucję i projekt bez kreatora i zrozumieć, co robi każde polecenie `dotnet`.
 
 ### Teoria w pigułce
 
@@ -72,8 +131,7 @@ Od dnia 13 budujemy jeden system (sklep), więc **kod z każdego dnia jest punkt
 
 ### Krok po kroku
 
-1. Utwórz folder `32Dzien11` i otwórz w nim terminal (PowerShell).
-2. Wykonaj:
+1. W terminalu, w folderze `32Dzien11`, wykonujemy:
 
 ```powershell
 dotnet new sln -n 32Dzien11 --format slnx
@@ -85,39 +143,58 @@ dotnet run --project P01Pogoda
 
 | Polecenie | Co robi |
 |---|---|
-| `dotnet new sln --format slnx` | tworzy solucję w nowym, czytelnym formacie XML |
-| `dotnet new console -n … -o … -f net10.0` | tworzy projekt konsolowy (`-n` nazwa, `-o` folder, `-f` wersja .NET) |
-| `dotnet sln add` | dopisuje projekt do solucji |
-| `dotnet build` / `dotnet run` | kompiluje / uruchamia (`run` sam buduje) |
+| `dotnet new sln --format slnx` | tworzy solucję (spis projektów) w nowym, czytelnym formacie XML zamiast starego `.sln`; Visual Studio 2026 obsługuje go domyślnie |
+| `dotnet new console -n … -o … -f net10.0` | tworzy projekt z szablonu `console` (`-n` nazwa, `-o` folder, `-f` wersja .NET) |
+| `dotnet sln add` | dopisuje projekt do solucji; bez tego Visual Studio nie pokaże projektu |
+| `dotnet build` / `dotnet run` | kompiluje / uruchamia (`run` sam robi `build`) |
 | `dotnet new list` | lista wszystkich szablonów |
 
-3. Otwórz `32Dzien11.slnx` w Visual Studio i zajrzyj do `P01Pogoda/Program.cs` oraz `P01Pogoda.csproj`.
+2. Otwieramy `32Dzien11.slnx` w Visual Studio (dwuklik) i sprawdzamy, że projekt tam jest. Zaglądamy do `P01Pogoda/Program.cs` oraz `P01Pogoda.csproj`.
 
-### Sprawdź
+**Pokaz:** plik `P01Pogoda.csproj` to kilka linii:
+
+```xml
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>
+```
+
+### Sprawdzamy
 
 `dotnet run --project P01Pogoda` wypisuje `Hello, World!`.
 
 ### Dlaczego tak
 
-- W `Program.cs` nie ma klasy ani `Main`: to **top‑level statements**. Kompilator sam dokłada klasę `Program` i metodę `Main`. Możesz używać `await` bezpośrednio.
-- W `.csproj` `ImplicitUsings` dodaje automatycznie `using System;`, `System.Linq`, `System.Net.Http` i kilka innych. `Nullable` włącza ostrzeżenia o możliwych wartościach `null`.
+- W `Program.cs` nie ma klasy `Program` ani metody `Main`: to **top‑level statements** (od C# 9, domyślne w szablonach). Kompilator sam dokłada klasę `Program` i metodę `Main`. Możemy pisać `await` na najwyższym poziomie, bo kompilator robi z tego `static async Task Main`.
+- W `.csproj` `ImplicitUsings` dodaje automatycznie `using System;`, `System.Linq`, `System.Net.Http` i kilka innych. `Nullable` włącza ostrzeżenia, gdy coś może być `null`; to nie błąd, ale kompilator podpowiada, gdzie sprawdzić wartość. W .NET Framework ten plik miał 100 linii i listę każdego pliku `.cs`.
+
+**Przejście:** zamiast Hello World pobierzemy temperaturę z internetu. Najpierw bez żadnego JSON‑a: usługa `wttr.in` zwraca zwykły tekst.
 
 ---
 
 ## 2. P01Pogoda: HttpClient, regex, jednostki
 
-**Cel:** pobrać tekst przez HTTP, wyciągnąć z niego liczbę, przeliczyć jednostki, obsłużyć błędy.
+**Cel:** pobrać tekst przez HTTP, wyciągnąć z niego liczbę wyrażeniem regularnym, przeliczyć jednostki (enum zamiast „magicznych” napisów), obsłużyć błędy.
 
 ### Teoria w pigułce
 
 - **`HttpClient`** to klasa do zapytań HTTP. Dawny `WebClient` jest w .NET oznaczony jako przestarzały. `HttpClient` tworzymy **raz** na aplikację: każdy nowy egzemplarz otwiera połączenia, których system nie zwalnia od razu (tzw. socket exhaustion).
-- **Wyrażenia regularne (regex)** to wzorce do przeszukiwania tekstu. `\d+` to „jedna lub więcej cyfr”, `[+-]?` to „opcjonalny znak”. Testuj wzorce na https://regex101.com.
+- **Wyrażenia regularne (regex)** to wzorce do przeszukiwania tekstu. `\d+` to „jedna lub więcej cyfr”, `[+-]?` to „opcjonalny znak”. Wzorce testujemy na https://regex101.com.
 - **`enum`** to typ z listą nazwanych wartości. Lepszy niż napisy `"C"`, `"F"`, bo kompilator wyłapie literówkę.
-- Usługa **wttr.in** zwraca pogodę jako zwykły tekst. Otwórz w przeglądarce `https://wttr.in/Warszawa?format=%t&m` – zobaczysz np. `+9°C`. Parametr `&m` wymusza Celsjusze.
+- Usługa **wttr.in** zwraca pogodę jako zwykły tekst.
+
+**Pokaz:** w przeglądarce otwieramy `https://wttr.in/Warszawa?format=%t&m` – odpowiedź to np. `+9°C`. Zmieniamy na `https://wttr.in/Warszawa` (bez `format`), żeby zobaczyć pełną „ASCII‑artową” prognozę. `format=%t` to tylko temperatura, `&m` wymusza stopnie Celsjusza (bez tego usługa zgaduje po adresie IP i potrafi zwrócić Fahrenheity).
 
 ### Krok po kroku
 
-1. W projekcie P01Pogoda dodaj klasę `WeatherManager.cs`:
+1. W projekcie P01Pogoda dodajemy klasę (prawy przycisk na projekcie → **Add → Class…**) `WeatherManager.cs`:
 
 ```csharp
 // P01Pogoda/WeatherManager.cs
@@ -197,7 +274,9 @@ public class WeatherManager
 }
 ```
 
-2. Zastąp `Program.cs`:
+**Pokaz:** na https://regex101.com wklejamy wzorzec `(?<value>[+-]?\d+(\.\d+)?)\s*°C` i teksty `+12°C`, `-3°C`, `Unknown location`. Widać, co się dopasowuje, a co nie.
+
+2. Zastępujemy `Program.cs`:
 
 ```csharp
 // P01Pogoda/Program.cs
@@ -247,23 +326,28 @@ while (true)
 Console.WriteLine("Do zobaczenia!");
 ```
 
-3. Uruchom: `dotnet run --project P01Pogoda`. Wpisz `Warszawa`, `New York`, potem `xyzxyz`.
+3. Uruchamiamy: `dotnet run --project P01Pogoda`. Wpisujemy `Warszawa`, `New York`, potem `xyzxyz`.
 
-### Sprawdź
+### Sprawdzamy
 
-- Dla miasta widzisz trzy wartości, np. `Warszawa: 9.0 °C | 48.2 °F | 282.1 K`.
-- Dla `xyzxyz` widzisz komunikat o błędzie, a program **nie** kończy się wyjątkiem.
+- Dla miasta widać trzy wartości, np. `Warszawa: 9.0 °C | 48.2 °F | 282.1 K`.
+- Dla `xyzxyz` widać komunikat „Nie udało się odczytać temperatury” (wttr.in zwraca tekst bez `°C`) albo błąd HTTP 404, a program **nie** kończy się wyjątkiem.
 
 ### Dlaczego tak
 
-- `static readonly HttpClient` – jeden na aplikację (patrz teoria).
-- `(?<value>…)` to **grupa nazwana**: czytelniejsze niż `Groups[1]`.
-- `CultureInfo.InvariantCulture` – na polskim Windowsie `double.Parse("12.5")` rzuca wyjątek, bo oczekuje przecinka. Dane z internetu zawsze mają kropkę.
-- Dwa `catch`: inny komunikat, gdy nie ma sieci (`HttpRequestException`), inny, gdy odpowiedź jest, ale nie zawiera temperatury (`FormatException`).
+1. **`HttpClient` jako `static readonly`** – jeden na aplikację. W .NET Framework używaliśmy `WebClient`; w .NET jest oznaczony jako przestarzały. `HttpClient` jest szybszy i asynchroniczny, ale ma pułapkę: jeśli tworzymy go w `using` przy każdym zapytaniu, system zostaje z setkami otwartych gniazd. Jutro jeden egzemplarz na aplikację zapewni nam kontener DI.
+2. **Regex**: `[+-]?` opcjonalny znak, `\d+` co najmniej jedna cyfra, `(\.\d+)?` opcjonalna część dziesiętna, `\s*°C` końcówka. `(?<value>…)` to **grupa nazwana**; zamiast `Groups[1]` piszemy `Groups["value"]`, co jest czytelniejsze. `RegexOptions.Compiled` kompiluje wzorzec raz; opłaca się, bo używamy go wiele razy.
+3. **`CultureInfo.InvariantCulture`** – na polskim Windowsie `double.Parse("12.5")` rzuca wyjątek, bo oczekuje przecinka. Dane z internetu zawsze mają kropkę, więc parsujemy je kulturą niezmienną.
+4. **Enum i `switch` jako wyrażenie** – zamiast `if (unit == "C")` mamy typ, w którym nie da się zrobić literówki, i jedno wyrażenie zamiast drabinki `if/else`.
+5. `Console.OutputEncoding = UTF8` jest po to, żeby znak `°` i polskie litery wyświetliły się poprawnie.
+6. Dwa bloki `catch`: inny komunikat, gdy nie ma sieci (`HttpRequestException`), inny, gdy odpowiedź jest, ale nie zawiera temperatury (`FormatException`).
+7. Trzy wywołania `GetTemperatureAsync` pod rząd są **celowo rozrzutne** (trzy zapytania HTTP o to samo) – to materiał na zadanie dodatkowe.
+
+**Ulepszenie:** w edycjach 26/31 używaliśmy `WebClient` i scrapowania strony Google po klasie CSS (`BNeawe iBp4i AP7Wnd`), co przestawało działać po każdej zmianie HTML Google. `wttr.in` ma stabilny format tekstowy, a `HttpClient` to obecny standard.
 
 ### Zadanie dodatkowe
 
-Program pobiera dane **trzy razy** o to samo. Przerób go tak, żeby pobrał raz (w Celsjuszach) i przeliczył metodą `WeatherManager.Convert`.
+Program pobiera dane **trzy razy** o to samo. Przerabiamy go tak, żeby pobrał raz (w Celsjuszach) i przeliczył metodą `WeatherManager.Convert`.
 
 ### Częste problemy
 
@@ -271,7 +355,9 @@ Program pobiera dane **trzy razy** o to samo. Przerób go tak, żeby pobrał raz
 |---|---|
 | `°` wyświetla się jako krzaczki | brakuje `Console.OutputEncoding = UTF8` |
 | `+48°F` zamiast Celsjuszy | brakuje `&m` w adresie |
-| wyjątek `TaskCanceledException` | przekroczony `Timeout` (10 s) – usługa wttr.in bywa wolna, spróbuj ponownie |
+| wyjątek `TaskCanceledException` | przekroczony `Timeout` (10 s) – usługa wttr.in bywa wolna, próbujemy ponownie |
+
+**Przejście:** w konsoli nie widać problemu, który jest najważniejszy w aplikacjach okienkowych: co się dzieje z oknem, gdy czekamy na internet. Przechodzimy do WPF.
 
 ---
 
@@ -287,23 +373,23 @@ Program pobiera dane **trzy razy** o to samo. Przerób go tak, żeby pobrał raz
 
 | Kontener | Zasada | Typowe użycie |
 |---|---|---|
-| `DockPanel` | „magnes”: `DockPanel.Dock="Top/Left/…"`, ostatni element wypełnia resztę | szkielet okna |
-| `Grid` | wiersze i kolumny; `Auto` = tyle, ile treść; `*` = reszta miejsca; `3*` = trzy części | formularze |
-| `StackPanel` | elementy jeden pod drugim (lub obok: `Orientation="Horizontal"`) | listy przycisków |
+| `DockPanel` | „magnes”: `DockPanel.Dock="Top/Left/…"`, ostatni element wypełnia resztę | szkielet okna: menu u góry, panel z boku |
+| `Grid` | wiersze i kolumny; `Auto` = tyle, ile treść; `*` = reszta miejsca; `3*` = trzy części | formularze, układy proporcjonalne |
+| `StackPanel` | elementy jeden pod drugim (lub obok: `Orientation="Horizontal"`) | listy przycisków, pola formularza |
 
-Kontenery można zagnieżdżać.
+Kontenery można zagnieżdżać bez ograniczeń.
 
 ### Krok po kroku
 
-1. Dodaj do solucji projekt **WPF Application** o nazwie `P02WeatherForecast` (.NET 10). Z konsoli:
+1. Dodajemy do solucji projekt **WPF Application** o nazwie `P02WeatherForecast` (.NET 10): prawy przycisk na solucji → **Add → New Project…** → **WPF Application** (C#) → **Create**. Z konsoli:
 
 ```powershell
 dotnet new wpf -n P02WeatherForecast -o P02WeatherForecast -f net10.0
 dotnet sln 32Dzien11.slnx add P02WeatherForecast/P02WeatherForecast.csproj
 ```
 
-2. Ustaw P02 jako projekt startowy (prawy przycisk → **Set as Startup Project**) i uruchom F5. Zobaczysz puste okno.
-3. Utwórz folder `Images` i wrzuć do niego dowolny obrazek `Logo.png` (w repozytorium jest gotowy). Zaznacz plik → **Properties → Build Action: Resource**. Plik projektu ma wyglądać tak:
+2. Ustawiamy P02 jako projekt startowy (prawy przycisk → **Set as Startup Project**) i uruchamiamy F5. Widać puste okno.
+3. Tworzymy folder `Images` i wrzucamy do niego `Logo.png`. Zaznaczamy plik w Solution Explorer → **Properties → Build Action: Resource**. Plik projektu ma wyglądać tak:
 
 ```xml
 <!-- P02WeatherForecast/P02WeatherForecast.csproj -->
@@ -325,7 +411,7 @@ dotnet sln 32Dzien11.slnx add P02WeatherForecast/P02WeatherForecast.csproj
 </Project>
 ```
 
-4. Zastąp `MainWindow.xaml`:
+4. Zastępujemy `MainWindow.xaml` (na razie bez stylów; wklejamy całość):
 
 ```xml
 <!-- P02WeatherForecast/MainWindow.xaml -->
@@ -406,7 +492,11 @@ dotnet sln 32Dzien11.slnx add P02WeatherForecast/P02WeatherForecast.csproj
 </Window>
 ```
 
-5. Zastąp `MainWindow.xaml.cs` wersją tymczasową (puste metody – pełną wkleisz w sekcji 6):
+> ⚠️ Po wklejeniu Visual Studio podkreśli `Click="…"` i `StaticResource BaseControlStyle` na czerwono: metod i stylów jeszcze nie ma. Dopiszemy je w kroku 5 i w sekcji 4. Jeśli wolimy budować stopniowo, wklejamy najpierw sam `DockPanel` z `Menu`, `Image` i `Grid` z pustymi `StackPanel`, a przyciski dodajemy w sekcji 6.
+
+**Pokaz:** okno **Document Outline** (View → Other Windows) pokazuje drzewo kontrolek. Zmiana `Width="3*"` na `Width="*"` przesuwa granicę między kolumnami.
+
+5. Zastępujemy `MainWindow.xaml.cs` wersją tymczasową (na razie tylko menu i puste metody, żeby projekt się kompilował – pełną wkleimy w sekcji 6):
 
 ```csharp
 // P02WeatherForecast/MainWindow.xaml.cs  (wersja tymczasowa)
@@ -437,14 +527,19 @@ public partial class MainWindow : Window
 }
 ```
 
-> Projekt **jeszcze się nie zbuduje**: XAML odwołuje się do stylów `BaseControlStyle` i `AccentButtonStyle`, które dodasz w sekcji 4. To celowe – najpierw układ, potem style.
+> Projekt **jeszcze się nie zbuduje**: XAML odwołuje się do stylów `BaseControlStyle` i `AccentButtonStyle`, które dodamy w sekcji 4. To celowe – najpierw układ, potem style.
 
 ### Dlaczego tak
 
-- `Resource` wbudowuje obrazek w `.exe` (jeden plik do rozdania). Alternatywa `Content` + `Copy to Output Directory` zostawia obrazek obok `.exe` i pozwala go podmienić bez kompilacji.
+- `net10.0-windows`, bo WPF działa tylko na Windows.
+- `Resource` wbudowuje obrazek w `.exe` (jeden plik do rozdania). Alternatywa `Content` + `Copy to Output Directory` zostawia obrazek obok `.exe` i pozwala go podmienić bez kompilacji. W edycji 26 używaliśmy `Content`, dziś `Resource`.
+- `x:Name` daje nam pole w C#, przez które dostajemy się do kontrolki z kodu.
+- `partial class`: druga połowa klasy jest generowana z XAML (`InitializeComponent`, pola `txtCities`, `lvLog`). Dlatego nazwy z `x:Name` działają w C#.
 - `_` w `Header="_Plik"` to skrót klawiszowy (Alt+P).
 - `Grid.ColumnSpan="2"` rozciąga element na dwie kolumny.
-- `namespace P02WeatherForecast;` ze średnikiem (file‑scoped namespace, C# 10) oszczędza jedno wcięcie.
+- `namespace P02WeatherForecast;` ze średnikiem to **file‑scoped namespace** (C# 10): jedno wcięcie mniej.
+
+**Przejście:** zanim dodamy style, projekt się nie zbuduje, bo XAML odwołuje się do `BaseControlStyle`. Style to następny temat.
 
 ---
 
@@ -455,13 +550,13 @@ public partial class MainWindow : Window
 ### Teoria w pigułce
 
 - **Zasoby** (`Resources`) to słownik obiektów (kolory, style, konwertery) dostępnych w XAML. `Application.Resources` widzi każde okno; `Window.Resources` tylko jedno okno i ma pierwszeństwo przy tym samym kluczu.
-- **Styl niejawny** (`<Style TargetType="Button">` bez `x:Key`) działa na wszystkie przyciski. **Styl z kluczem** trzeba wskazać: `Style="{StaticResource NazwaStylu}"`.
+- **Styl niejawny** (`<Style TargetType="Button">` bez `x:Key`) działa na wszystkie przyciski, chyba że przycisk dostanie własny `Style=`. **Styl z kluczem** trzeba wskazać ręcznie: `Style="{StaticResource NazwaStylu}"`.
 - **`BasedOn`** to dziedziczenie stylów: styl pochodny bierze ustawienia bazowego i dokłada własne.
-- `StaticResource` czyta zasób raz przy starcie; `DynamicResource` śledzi zmiany (np. przełączanie motywu).
+- `StaticResource` czyta zasób raz przy starcie; `DynamicResource` śledzi zmiany (np. przełączanie motywu ciemny/jasny).
 
 ### Krok po kroku
 
-1. Zastąp `App.xaml`:
+1. Zastępujemy `App.xaml`:
 
 ```xml
 <!-- P02WeatherForecast/App.xaml -->
@@ -507,17 +602,25 @@ public partial class MainWindow : Window
 </Application>
 ```
 
-2. Uruchom F5.
+2. Uruchamiamy F5.
 
-### Sprawdź
+### Sprawdzamy
 
 - Okno ma menu, logo z lewej, pole z sześcioma miastami, siedem jasnoniebieskich przycisków (ostatni ciemnoniebieski z białym tekstem), ramki „Wyniki” i „Dziennik”.
 - **Pomoc → O programie** pokazuje komunikat.
-- Eksperyment: zmień `PrimaryBrush` na `#C0392B` – zmieni się kolor wszystkich elementów, które z niego korzystają.
+- Eksperyment: zmieniamy `PrimaryBrush` na `#C0392B` – zmieni się kolor wszystkich elementów, które z niego korzystają.
 
 ### Dlaczego tak
 
-`TargetType="Control"` w stylu bazowym pozwala użyć jednego stylu dla `TextBox`, `ListView` i `Button`, bo `Control` jest ich wspólnym przodkiem. Zmiana w stylu bazowym zmienia wszystkie pochodne – tak jak zmiana w klasie bazowej.
+| Element | Znaczenie |
+|---|---|
+| `Application.Resources` | słownik zasobów na poziomie aplikacji: dostępny w każdym oknie. `Window.Resources` działa tylko w jednym oknie i ma pierwszeństwo przy tym samym kluczu |
+| `Style TargetType="Button"` **bez** `x:Key` | styl niejawny: WPF stosuje go do każdego `Button`. Wszystkie nasze przyciski są jasnoniebieskie bez jednej linii w oknie |
+| `x:Key="BaseControlStyle"` z `TargetType="Control"` | styl z kluczem trzeba wskazać ręcznie. `Control` to wspólny przodek `TextBox`, `ListView` i `Button`, więc jeden styl pasuje do nich wszystkich |
+| `BasedOn` | dziedziczenie jak w klasach: `AccentButtonStyle` bierze czcionkę i margines z bazowego i dokłada kolory. Zmiana w bazowym zmienia wszystkie pochodne |
+| `StaticResource` | odczyt zasobu raz, przy ładowaniu. `DynamicResource` śledzi zmiany |
+
+**Przejście:** mamy wygląd, pora na logikę. Najpierw napiszemy ją tak, jak robiliśmy to w Windows Forms: synchronicznie. I zobaczymy, dlaczego to zły pomysł.
 
 ---
 
@@ -531,7 +634,7 @@ WPF ma **jeden wątek interfejsu** (UI thread). On rysuje okno, obsługuje klikn
 
 ### Krok po kroku
 
-1. Dodaj folder `Services` i klasę `WeatherForecastService.cs`:
+1. Dodajemy folder `Services` i klasę `WeatherForecastService.cs`:
 
 ```csharp
 // P02WeatherForecast/Services/WeatherForecastService.cs
@@ -609,7 +712,7 @@ public class WeatherForecastService
 }
 ```
 
-2. W `MainWindow.xaml.cs` dodaj pole `private readonly WeatherForecastService _service = new();` (i `using P02WeatherForecast.Services;`), a w `btnSync_Click` wpisz:
+2. W `MainWindow.xaml.cs` dodajemy pole `private readonly WeatherForecastService _service = new();` (i `using P02WeatherForecast.Services;`), a w `btnSync_Click` wpisujemy (w sekcji 6 wkleimy pełny plik, tu tylko fragment):
 
 ```csharp
 private void btnSync_Click(object sender, RoutedEventArgs e)
@@ -624,38 +727,42 @@ private void btnSync_Click(object sender, RoutedEventArgs e)
 }
 ```
 
-3. Uruchom, kliknij **1. Synchronicznie** i w trakcie spróbuj przesunąć okno albo otworzyć menu.
+3. Uruchamiamy, klikamy **1. Synchronicznie** i w trakcie próbujemy przesunąć okno albo otworzyć menu.
 
-### Sprawdź
+### Sprawdzamy
 
-Okno nie reaguje, aż wszystkie miasta się pobiorą. Wpisy „Pobieram…” pojawiają się **wszystkie naraz na końcu**, a nie po kolei (wątek nie miał czasu ich narysować).
+Okno nie reaguje, tytuł dostaje „(Brak odpowiedzi)”, aż wszystkie miasta się pobiorą. Wpisy „Pobieram…” pojawiają się **wszystkie naraz na końcu**, a nie po kolei: `lvLog.Items.Add` dodał element, ale wątek nie miał czasu go narysować.
 
 ### Dlaczego tak
 
-Serwis ma trzy metody o tym samym wyniku:
+Serwis ma trzy metody o tym samym wyniku. Na razie używamy tylko pierwszej.
 
 | Metoda | Jak działa | Kiedy używać |
 |---|---|---|
 | `GetTemperature` | blokuje wątek (`Send` bez `Async`) | nigdy w UI; tu tylko do pokazania problemu |
-| `GetTemperatureAsync` | gotowa metoda asynchroniczna biblioteki; podczas czekania **żaden** wątek nie jest zajęty | zawsze, gdy biblioteka ma wersję `…Async` |
-| `GetTemperatureWrappedAsync` | `Task.Run` przenosi kod synchroniczny do wątku z puli | gdy biblioteka ma tylko wersję synchroniczną albo liczymy coś ciężkiego |
+| `GetTemperatureAsync` | gotowa metoda asynchroniczna biblioteki; podczas czekania na serwer **żaden** wątek nie jest zajęty | zawsze, gdy biblioteka ma wersję `…Async` |
+| `GetTemperatureWrappedAsync` | `Task.Run` bierze wątek z puli i tam blokuje – wyjście awaryjne, gdy biblioteka jest stara | gdy biblioteka ma tylko wersję synchroniczną albo liczymy coś ciężkiego |
+
+Rozwiązanie problemu z sekcji „Sprawdzamy”: nie czekać w wątku UI.
+
+**Przejście:** teraz sześć wariantów asynchronicznych (plus synchroniczny jako punkt odniesienia). Idziemy od najbardziej ręcznego do zalecanego, żeby zrozumieć, co `async/await` robi pod spodem.
 
 ---
 
 ## 6. P02: siedem wariantów asynchronicznych
 
-**Cel:** zrozumieć `async/await`, `Task.Run`, `Task.WhenAll`, krotki, `Dispatcher`, postęp i wyjątki.
+**Cel:** zrozumieć `async/await`, `Task.Run`, `Task.WhenAll`, krotki, `Dispatcher`, obsługę postępu i wyjątków.
 
 ### Teoria w pigułce
 
-- **`async`/`await`**: `await` mówi „zwróć wątek wywołującemu, a gdy zadanie się skończy, wróć do tej linii”. W WPF po `await` wracasz na wątek UI, więc możesz bezpiecznie zmieniać kontrolki.
+- **`async`/`await`**: `await` mówi „zwróć wątek wywołującemu, a gdy zadanie się skończy, wróć do tej linii”. W WPF po `await` wracamy na wątek UI, więc możemy bezpiecznie zmieniać kontrolki.
 - **`async void`** jest dozwolone **tylko** w obsłudze zdarzeń (bo WPF wymaga `void`). Wszędzie indziej metody asynchroniczne zwracają `Task` lub `Task<T>`.
 - **`Task.Run`** uruchamia kod w wątku z puli (ThreadPool). **`Task.WhenAll`** czeka na wiele zadań naraz.
 - Z innego wątku **nie wolno** dotykać kontrolek – trzeba użyć `Dispatcher.Invoke`.
 
 ### Krok po kroku
 
-1. Zastąp cały `MainWindow.xaml.cs`:
+1. Zastępujemy cały `MainWindow.xaml.cs`:
 
 ```csharp
 // P02WeatherForecast/MainWindow.xaml.cs
@@ -881,9 +988,23 @@ public partial class MainWindow : Window
 }
 ```
 
-2. Uruchom i klikaj przyciski po kolei. Po każdym kliknięciu spójrz na **Dziennik** (czas w ms) i spróbuj przesunąć okno.
+2. Uruchamiamy i klikamy przyciski po kolei. Po każdym kliknięciu patrzymy na **Dziennik** (czas w ms jest ważny) i próbujemy przesunąć okno.
 
-### Sprawdź
+### Omówienie wariantów (po uruchomieniu)
+
+**Wariant 2: `Task.Run` + `await`.** `async void` w nazwie obsługi zdarzenia: jedyny przypadek, gdy `async void` jest dozwolone. W środku `await Task.Run(…)`. `Task.Run` wysyła pracę do wątku z puli. `await` mówi: „zwróć wątek UI, a gdy zadanie się skończy, wróć do tej linii”. Dlatego okno reaguje, a w dzienniku widzimy wpisy na bieżąco. Ale czas łączny jest podobny do synchronicznego, bo miasta idą jedno po drugim. **Pokaz:** w trakcie przesuwamy okno – działa; czas w dzienniku ≈ suma czasów.
+
+**Wariant 3: `Task.WhenAll`.** Tworzymy wszystkie zadania w pętli **bez** `await`: startują równolegle. Dopiero `await Task.WhenAll(tasks)` czeka na komplet. Czas ≈ najwolniejsze miasto. Problem: `Task<double>` zwraca tylko liczbę; nie wiemy, które miasto. Stąd `(miasto?)` w wynikach. **Pokaz:** czas w dzienniku jest kilka razy krótszy niż w wariancie 2.
+
+**Wariant 4: krotka.** Zadanie może zwrócić krotkę `(City, Temperature)`. `Task.WhenAll` zwraca tablicę krotek, a w pętli rozpakowujemy ją `foreach (var (city, temperature) in results)`. To ten sam wariant, co 3, ale z pełną informacją.
+
+**Wariant 5: `ContinueWith` i `Dispatcher`.** Tu nie czekamy na nikogo. `ContinueWith` rejestruje kod, który wykona się po zakończeniu zadania, ale w **wątku z puli**. Gdybyśmy tam napisali `tbResults.Text += …`, dostaniemy `InvalidOperationException: The calling thread cannot access this object`. Dlatego `Dispatcher.Invoke` przekazuje ten kawałek do wątku UI. Wyniki pojawiają się w kolejności **odpowiedzi serwera**, nie w kolejności listy. W praktyce `ContinueWith` prawie nie piszemy: `await` robi dokładnie to samo i sam wraca na wątek UI. Pokazujemy go, żeby było widać, co `await` robi za nas.
+
+**Wariant 6: pasek postępu.** Sekwencyjnie jak w wariancie 2, ale z `ProgressBar`. Tutaj używamy `GetTemperatureWrappedAsync`: serwis sam opakowuje kod synchroniczny w `Task.Run`, więc okno nie musi wiedzieć, jak to zrobiono.
+
+**Wariant 7: gotowa metoda async (zalecane).** To jest wzorzec, którego używamy od jutra do końca kursu. `GetTemperatureAsync` korzysta z `GetStringAsync` z `HttpClient`. Podczas czekania na serwer **żaden wątek nie jest zajęty** (operacja I/O, system operacyjny powiadomi nas, gdy dane przyjdą). Nie ma `Task.Run`, nie ma `Dispatcher`. Jest `try/catch/finally`: wyjątek z metody asynchronicznej wraca do linii z `await`, więc łapiemy go zwykłym `catch`. `finally` odblokowuje przycisk, nawet gdy był błąd.
+
+### Sprawdzamy
 
 | Przycisk | Czego się spodziewać |
 |---|---|
@@ -893,53 +1014,59 @@ public partial class MainWindow : Window
 | 4 | jak 3, z nazwami miast |
 | 5 | wyniki w kolejności **odpowiedzi serwera**, nie listy |
 | 6 | pasek postępu rośnie po każdym mieście |
-| 7 | jak 6; dopisz do listy `xyzxyz` – w dzienniku pojawi się „Błąd: …”, a przycisk znów będzie aktywny |
+| 7 | jak 6; po dopisaniu do listy `xyzxyz` w dzienniku pojawia się „Błąd: …”, a przycisk znów jest aktywny |
 
-3. Eksperyment: w wariancie 5 usuń `Dispatcher.Invoke(() => { … })`, zostawiając samo `AppendResult(...)`. Uruchom – dostaniesz `InvalidOperationException: The calling thread cannot access this object`. Przywróć kod.
+3. Eksperyment: w wariancie 5 usuwamy na chwilę `Dispatcher.Invoke(() => { … })`, zostawiając samo `AppendResult(...)`. Po uruchomieniu dostajemy `InvalidOperationException: The calling thread cannot access this object`. Przywracamy kod.
 
 ### Dlaczego tak
 
-| Sytuacja | Co robić |
+| Sytuacja | Co robimy |
 |---|---|
 | Biblioteka ma metodę `…Async` | `await` i nic więcej (wariant 7) – podczas czekania żaden wątek nie pracuje |
-| Biblioteka ma tylko metodę synchroniczną albo liczysz coś ciężkiego (CPU) | `await Task.Run(…)` (warianty 2, 6) |
-| Wiele niezależnych operacji | uruchom wszystkie, potem `await Task.WhenAll` (warianty 3, 4) |
+| Biblioteka ma tylko metodę synchroniczną albo liczymy coś ciężkiego (CPU) | `await Task.Run(…)` (warianty 2, 6) |
+| Wiele niezależnych operacji | uruchamiamy wszystkie, potem `await Task.WhenAll` (warianty 3, 4) |
 | Kod z innego wątku ma zmienić kontrolkę | `Dispatcher.Invoke` (wariant 5); w praktyce lepiej użyć `await`, który sam wraca na wątek UI |
 
 Wariant 7 to wzorzec na cały kurs: `try/catch/finally` wokół `await`, blokada przycisku na czas operacji, komunikat zamiast wyjątku.
+
+**Ulepszenie:** względem edycji 26/31: zamiast `t.GetAwaiter().OnCompleted` jest czytelniejsze `ContinueWith` z `IsCompletedSuccessfully`; każdy wariant mierzy czas (`Stopwatch`), żeby różnica była widoczna w liczbach; wariant zalecany ma `try/catch/finally` i blokadę przycisku; `Split` z `TrimEntries` usuwa puste linie.
 
 ### Częste problemy
 
 | Objaw | Rozwiązanie |
 |---|---|
-| `The calling thread cannot access this object` | zmieniasz kontrolkę z innego wątku – użyj `await` albo `Dispatcher.Invoke` |
-| Przycisk 1 nie zamraża okna | wttr.in odpowiedziało bardzo szybko – dodaj więcej miast |
-| Ostrzeżenie „async method lacks await” | w którejś metodzie `async` nie ma `await` – sprawdź, czy wkleiłeś cały plik |
+| `The calling thread cannot access this object` | zmiana kontrolki z innego wątku – używamy `await` albo `Dispatcher.Invoke` |
+| Przycisk 1 nie zamraża okna | wttr.in odpowiedziało bardzo szybko – dodajemy więcej miast |
+| Ostrzeżenie „async method lacks await” | w którejś metodzie `async` nie ma `await` – sprawdzamy, czy wklejony jest cały plik |
+
+**Przejście:** usługa, która zwraca tekst `+9°C`, jest dobra do nauki, ale prawdziwe API zwracają **JSON**. W P03 zbudujemy klienta Open‑Meteo, którego będziemy rozwijać przez następne dni.
 
 ---
 
 ## 7. P03WeatherForecastWPF.Client: klient Open‑Meteo
 
-**Cel:** przeczytać dokumentację API, zamienić JSON na klasy C#, napisać serwis i okno.
+**Cel:** przeczytać dokumentację API, zamienić JSON na klasy C#, napisać serwis z `HttpClient` i okno; dwuetapowe wyszukiwanie (miasto → współrzędne → pogoda).
 
 ### Teoria w pigułce
 
 - **API** (interfejs programistyczny) to usługa, do której program wysyła zapytanie HTTP i dostaje dane, najczęściej w formacie **JSON**. Przeglądarka też potrafi je wyświetlić – to najprostszy sposób na poznanie API.
-- **Open‑Meteo** jest darmowe i **nie wymaga klucza**. Inne usługi (AccuWeather, OpenWeatherMap) wymagają rejestracji i klucza API, który jest sekretem i nie może trafić do repozytorium (o sekretach powiemy w dniu 15).
+- **Open‑Meteo** jest darmowe do użytku niekomercyjnego i **nie wymaga klucza**, dlatego każdy może go używać od razu. Inne usługi (AccuWeather, OpenWeatherMap) wymagają rejestracji i klucza API. Klucz to sekret: nie może trafić do repozytorium (User Secrets pokażemy w dniu 15 przy kluczach Azure). Dziś celowo API bez klucza.
 - Pogoda wymaga **współrzędnych**, więc najpierw pytamy **geocoding** (miasto → lista pasujących miejsc ze współrzędnymi), potem **forecast** (współrzędne → pogoda).
-- **Deserializacja** to zamiana JSON na obiekt C#. W .NET służy do tego wbudowany `System.Text.Json`. Nazwy pól JSON (`country_code`) mapujemy na właściwości C# (`CountryCode`) atrybutem `[JsonPropertyName]`.
+- **Deserializacja** to zamiana JSON na obiekt C#. W .NET służy do tego wbudowany `System.Text.Json`. Nazwy pól JSON (`country_code`, `temperature_2m`) mapujemy na właściwości C# (`CountryCode`) atrybutem `[JsonPropertyName]`.
 - Rozróżniamy **DTO** (klasy odwzorowujące JSON dostawcy) i **model domenowy** (`Weather` – to, co pokazujemy). Dzięki temu zmiana dostawcy nie zmienia okna.
 
 ### Krok po kroku
 
-1. Otwórz w przeglądarce i obejrzyj odpowiedzi:
+1. Otwieramy w przeglądarce i oglądamy odpowiedzi:
    - `https://geocoding-api.open-meteo.com/v1/search?name=Warszawa&count=10&language=pl&format=json`
    - `https://api.open-meteo.com/v1/forecast?latitude=52.23&longitude=21.01&current=temperature_2m,wind_speed_10m,weather_code&timezone=auto`
    - Dokumentacja: https://open-meteo.com/en/docs (sekcja „Current Weather”) i https://open-meteo.com/en/docs/geocoding-api
 
-2. Dodaj do solucji projekt **WPF Application** `P03WeatherForecastWPF.Client` (.NET 10) i utwórz w nim foldery `Models` i `Services`.
+2. Dodajemy do solucji projekt **WPF Application** `P03WeatherForecastWPF.Client` (.NET 10) i tworzymy w nim foldery `Models` i `Services`. Nazwa z `.Client` nie jest przypadkowa: w dniu 13 obok pojawi się `P05Shop.API`, czyli serwer, a ten projekt będzie jego klientem. Projekt P03 zostaje z nami do dnia 18.
 
-3. W `Models` utwórz cztery pliki:
+**Pokaz:** narzędzie **Edit → Paste Special → Paste JSON As Classes** w Visual Studio (po wklejeniu JSON z geocodingu) generuje klasy `Rootobject`, `Result` z polami `country_code` jako nazwami właściwości. To dobry start, ale nazwy w stylu `country_code` łamią konwencje C#. Zrobimy to porządnie: PascalCase plus atrybut `[JsonPropertyName]`. Mapujemy tylko pola, których używamy; reszta JSON‑a jest po prostu ignorowana.
+
+3. W `Models` tworzymy cztery pliki:
 
 ```csharp
 // P03WeatherForecastWPF.Client/Models/City.cs
@@ -1097,7 +1224,16 @@ public class Weather
 }
 ```
 
-4. W `Services` utwórz serwis:
+**Dlaczego tak (modele):**
+
+- Dwa rodzaje modeli: `GeocodingResponse`/`ForecastResponse` to **kształt JSON‑a dostawcy** (DTO). `Weather` to **nasz model**: to, co aplikacja chce pokazać. Dzięki temu, gdy zmienimy dostawcę pogody, zmienimy tylko serwis, a okno i (od jutra) ViewModel zostają.
+- `string?` i `List<City>?`: pytajnik mówi „może być null”. `results` nie ma w JSON‑ie, gdy nic nie znaleziono, więc `Results` musi być nullable. `Name` bez pytajnika ma wartość domyślną `string.Empty`.
+- `[JsonIgnore]` na `FullName`: to właściwość tylko do wyświetlania, nie chcemy, żeby serializator jej szukał w JSON‑ie.
+- `switch` z `or` (C# 9 pattern matching) zamiast dziesięciu `case`.
+
+**Ulepszenie:** edycje 26/31 używały Newtonsoft.Json. W .NET wbudowany `System.Text.Json` jest szybszy i nie wymaga pakietu; `GetFromJsonAsync` z `System.Net.Http.Json` robi pobranie i deserializację w jednej linii.
+
+4. W `Services` tworzymy serwis:
 
 ```csharp
 // P03WeatherForecastWPF.Client/Services/OpenMeteoService.cs
@@ -1165,7 +1301,14 @@ public class OpenMeteoService
 }
 ```
 
-5. Zastąp `MainWindow.xaml`:
+**Dlaczego tak (serwis):**
+
+- `HttpClient` wchodzi do serwisu **konstruktorem**. Serwis nie tworzy go sam; dostaje gotowy. To już jest wstrzykiwanie zależności (Dependency Injection), tylko ręczne. Jutro zrobi to za nas kontener DI.
+- `?? []` (C# 12 collection expression): gdy odpowiedź albo lista jest `null`, zwracamy pustą tablicę. Okno nigdy nie dostaje `null`.
+- `latitude.ToString(CultureInfo.InvariantCulture)` – na polskim Windowsie `52.23.ToString()` da `52,23`, a serwer odpowie błędem 400. **To najczęstszy błąd na tym kursie.**
+- Serwis zwraca `Weather?`: `null` znaczy „brak danych”. Okno decyduje, co z tym zrobić.
+
+5. Zastępujemy `MainWindow.xaml`:
 
 ```xml
 <!-- P03WeatherForecastWPF.Client/MainWindow.xaml -->
@@ -1213,7 +1356,7 @@ public class OpenMeteoService
 </Window>
 ```
 
-6. Zastąp `MainWindow.xaml.cs` (konfigurację z sekcji 8 dodamy za chwilę – ten plik już jej używa):
+6. Zastępujemy `MainWindow.xaml.cs` (konfigurację z sekcji 8 dodamy za chwilę – ten plik już jej używa):
 
 ```csharp
 // P03WeatherForecastWPF.Client/MainWindow.xaml.cs
@@ -1310,13 +1453,15 @@ public partial class MainWindow : Window
 }
 ```
 
-### Dlaczego tak
+> Ten plik korzysta z `ConfigurationBuilder`, którego dodamy w sekcji 8. Żeby uruchomić P03 przed sekcją 8, zastępujemy na chwilę trzy linie konfiguracji przez `string language = "pl";`.
 
-- `HttpClient` wchodzi do serwisu **konstruktorem** – to już jest wstrzykiwanie zależności (Dependency Injection), tylko ręczne. Jutro zrobi to za nas kontener.
-- `?? []` zwraca pustą tablicę, gdy odpowiedź jest pusta – okno nigdy nie dostaje `null`.
-- `latitude.ToString(CultureInfo.InvariantCulture)` – na polskim Windowsie `52.23.ToString()` da `52,23`, a serwer odpowie błędem 400. **Najczęstszy błąd na tym kursie.**
-- `DisplayMemberPath="FullName"` – lista dostaje obiekty `City`, a wyświetla właściwość `FullName`.
-- `lbCities.SelectedItem is not City selectedCity` – pattern matching: jeśli nic nie zaznaczono, wychodzimy.
+**Dlaczego tak (okno):**
+
+- `DisplayMemberPath="FullName"` – lista dostaje obiekty `City`, a wyświetla właściwość `FullName`. Bez tego zobaczylibyśmy nazwę klasy. `SelectionChanged` odpala się po kliknięciu elementu.
+- `lbCities.SelectedItem is not City selectedCity` – pattern matching z deklaracją zmiennej: gdy nic nie zaznaczono (np. po odświeżeniu listy), wychodzimy.
+- `ItemsSource` zamiast `Items.Add` w pętli: podajemy całą kolekcję; jutro to samo zrobimy bindingiem bez jednej linii C#.
+
+**Przejście:** język `pl` jest wpisany… a właściwie nie jest, bo czytamy go z pliku. Zobaczmy skąd.
 
 ---
 
@@ -1326,17 +1471,17 @@ public partial class MainWindow : Window
 
 ### Teoria w pigułce
 
-`Microsoft.Extensions.Configuration` czyta ustawienia z plików JSON, zmiennych środowiskowych, User Secrets itd. i udostępnia je pod kluczami `Sekcja:Klucz`. Plik `appsettings.json` **nie** jest wbudowany w `.exe`, więc można go zmienić bez kompilacji.
+`Microsoft.Extensions.Configuration` czyta ustawienia z plików JSON, zmiennych środowiskowych, User Secrets itd. i udostępnia je pod kluczami `Sekcja:Klucz` (dwukropek to separator poziomów). Plik `appsettings.json` **nie** jest wbudowany w `.exe`, więc można go zmienić bez kompilacji.
 
 ### Krok po kroku
 
-1. Dodaj pakiet NuGet do P03: prawy przycisk → **Manage NuGet Packages** → `Microsoft.Extensions.Configuration.Json` (10.0.x). Albo z konsoli:
+1. Dodajemy pakiet NuGet do P03: prawy przycisk → **Manage NuGet Packages** → `Microsoft.Extensions.Configuration.Json` (10.0.x). Albo z konsoli:
 
 ```powershell
 dotnet add P03WeatherForecastWPF.Client package Microsoft.Extensions.Configuration.Json
 ```
 
-2. Dodaj do projektu plik `appsettings.json`, zaznacz go → **Properties → Copy to Output Directory: Copy if newer**:
+2. Dodajemy do projektu plik `appsettings.json`, zaznaczamy go → **Properties → Copy to Output Directory: Copy if newer**:
 
 ```json
 // P03WeatherForecastWPF.Client/appsettings.json
@@ -1347,7 +1492,7 @@ dotnet add P03WeatherForecastWPF.Client package Microsoft.Extensions.Configurati
 }
 ```
 
-3. Sprawdź plik projektu (powinien wyglądać tak):
+3. Sprawdzamy plik projektu (powinien wyglądać tak):
 
 ```xml
 <!-- P03WeatherForecastWPF.Client/P03WeatherForecastWPF.Client.csproj -->
@@ -1375,63 +1520,102 @@ dotnet add P03WeatherForecastWPF.Client package Microsoft.Extensions.Configurati
 </Project>
 ```
 
-4. Ustaw P03 jako projekt startowy i uruchom.
+4. Ustawiamy P03 jako projekt startowy i uruchamiamy.
 
-### Sprawdź
+### Sprawdzamy
 
-- Wpisz `Warszawa` → **Szukaj** → kliknij pierwszy wynik. Widzisz temperaturę, wiatr, opis i czas.
-- Wpisz `Kraków` – na liście jest też Krakow w Wisconsin (USA). Tak działa geocoding: zwraca wszystkie pasujące miejsca.
-- Wpisz `xyzxyz` – komunikat „Nie znaleziono miasta”.
-- Wyłącz Wi‑Fi i kliknij Szukaj – komunikat „Błąd połączenia”, aplikacja działa dalej.
-- Zmień `DefaultLanguage` na `en` w pliku `bin/Debug/net10.0-windows/appsettings.json` i uruchom `.exe` – nazwy krajów będą po angielsku, bez kompilacji.
+- Wpisujemy `Warszawa` → **Szukaj** → klikamy pierwszy wynik. Widać temperaturę, wiatr, opis i czas.
+- Wpisujemy `Kraków` – na liście jest też Krakow w Wisconsin (USA). Tak działa geocoding: zwraca wszystkie pasujące miejsca.
+- Wpisujemy `xyzxyz` – komunikat „Nie znaleziono miasta”.
+- Wyłączamy Wi‑Fi (albo zmieniamy adres w serwisie na `https://nie-ma-takiej-domeny.invalid`) i klikamy Szukaj – komunikat „Błąd połączenia”, aplikacja działa dalej, bez wyjątku.
+- Zmieniamy `DefaultLanguage` na `en` w pliku `bin/Debug/net10.0-windows/appsettings.json` i uruchamiamy `.exe` – nazwy krajów będą po angielsku, bez kompilacji.
 
 ### Dlaczego tak
 
-Sekcja `AppSettings` z kluczem `DefaultLanguage`: w kodzie `configuration["AppSettings:DefaultLanguage"]`. Jutro zbindujemy całą sekcję do klasy `AppSettings`, w dniu 13 dojdzie `ApiBaseUrl` (adres naszego API), a w dniu 15 sekrety Azure trafią do User Secrets. Ten sam mechanizm działa w każdym typie aplikacji .NET.
+Sekcja `AppSettings` z kluczem `DefaultLanguage`: w kodzie `configuration["AppSettings:DefaultLanguage"]`. Jutro zamiast tekstowego klucza zbindujemy całą sekcję do klasy `AppSettings`, w dniu 13 dojdzie `ApiBaseUrl` (adres naszego API), a w dniu 15 sekrety Azure trafią do User Secrets. Ten sam mechanizm działa w każdym typie aplikacji .NET, więc uczymy się go raz.
+
+**Ulepszenie:** edycja 31 miała `appsettings.json` podpięty pod generator `SettingsSingleFileGenerator` (relikt z .NET Framework, tworzył `appsettings.Designer.cs`) i czytała go `AddUserSecrets<App>()` bez zarejestrowanego `UserSecretsId`. Tu jest czysto: tylko `AddJsonFile`. User Secrets dołożymy, gdy będzie sekret (dzień 15).
 
 ### Częste problemy
 
 | Objaw | Rozwiązanie |
 |---|---|
-| `FileNotFoundException: appsettings.json` | brak **Copy to Output Directory** – sprawdź `.csproj` |
-| `HttpRequestException: 400` przy pogodzie | współrzędne z przecinkiem – sprawdź `CultureInfo.InvariantCulture` |
-| Lista pusta po Szukaj, bez komunikatu | sprawdź `DisplayMemberPath="FullName"` i czy `Results` jest `List<City>?` |
+| `FileNotFoundException: appsettings.json` | brak **Copy to Output Directory** – sprawdzamy `.csproj` |
+| `HttpRequestException: 400` przy pogodzie | współrzędne z przecinkiem – sprawdzamy `CultureInfo.InvariantCulture` |
+| Lista pusta po Szukaj, bez komunikatu | sprawdzamy `DisplayMemberPath="FullName"` i czy `Results` jest `List<City>?` |
 
 ---
 
 ## 9. Podsumowanie
 
-Dziś nauczyłeś się:
+Dziś nauczyliśmy się:
 
-1. tworzyć solucję i projekty z CLI `dotnet`,
+1. tworzyć solucję i projekty z CLI `dotnet` (.NET zamiast .NET Framework),
 2. pobierać dane przez `HttpClient` i parsować je regexem,
-3. budować okna WPF z kontenerów `DockPanel`, `Grid`, `StackPanel` i stylować je przez zasoby i `BasedOn`,
-4. dlaczego wątek UI nie może czekać i jak `async/await`, `Task.Run`, `Task.WhenAll` i `Dispatcher` rozwiązują problem,
+3. budować okna WPF z kontenerów `DockPanel`, `Grid`, `StackPanel` i stylować je przez zasoby w `App.xaml` i `BasedOn`,
+4. dlaczego jeden wątek UI nie może czekać i jak `async/await`, `Task.Run`, `Task.WhenAll` i `Dispatcher` rozwiązują problem,
 5. mapować JSON na klasy przez `System.Text.Json` i oddzielać DTO od modelu domenowego,
 6. trzymać ustawienia w `appsettings.json`.
 
-Jutro (dzień 12) przeniesiemy logikę z `MainWindow.xaml.cs` do **ViewModelu** (MVVM) i oddamy tworzenie obiektów kontenerowi **Dependency Injection**. Kod serwisu i modeli zostaje bez zmian.
+Jutro (dzień 12) przeniesiemy logikę z `MainWindow.xaml.cs` do **ViewModelu** (MVVM, binding) i oddamy tworzenie obiektów kontenerowi **Dependency Injection**. Kod serwisu i modeli zostaje bez zmian, zmieni się tylko miejsce, gdzie leży logika.
 
-### Zapisz pracę
+### Zapisujemy pracę
 
 ```powershell
 dotnet new gitignore
 git init
 git add .
 git commit -m "Dzien 11: konsola, WPF (kontenery, style, async), klient Open-Meteo"
+git branch -M master
+git remote add origin https://github.com/<konto>/32Dzien11.git
+git push -u origin master
 ```
+
+`dotnet new gitignore` tworzy plik `.gitignore` dla Visual Studio (ignoruje `bin/`, `obj/`, `.vs/`).
 
 ### Zadania dodatkowe
 
-1. P01: pobieraj temperaturę raz i przeliczaj ją metodą `Convert`.
-2. P02: dodaj przycisk „Anuluj” i `CancellationToken` do wariantu 7 (podpowiedź: `CancellationTokenSource`, `GetStringAsync(url, token)`).
-3. P03: dodaj przycisk „Ulubione”, który zapisuje wybrane miasto do `favorites.json` (`JsonSerializer.Serialize`) i wczytuje listę przy starcie.
+1. P01: pobieramy temperaturę raz i przeliczamy ją metodą `Convert`.
+2. P02: dodajemy przycisk „Anuluj” i `CancellationToken` do wariantu 7 (podpowiedź: `CancellationTokenSource`, `GetStringAsync(url, token)`).
+3. P03: dodajemy przycisk „Ulubione”, który zapisuje wybrane miasto do `favorites.json` (`System.Text.Json.JsonSerializer.Serialize`) i wczytuje listę przy starcie.
 
-### Pytania do samodzielnego sprawdzenia
+### Pytania kontrolne
 
 1. Dlaczego `HttpClient` jest `static`, a nie tworzony w `using` przy każdym zapytaniu?
-2. Co się stanie, gdy w `ContinueWith` zmienisz kontrolkę bez `Dispatcher`?
-3. Czym różni się wariant 2 od wariantu 3 pod względem czasu i dlaczego?
+2. Co się stanie, gdy w `ContinueWith` zapiszemy do `tbResults.Text` bez `Dispatcher`?
+3. Czym różni się wariant 2 (`Task.Run` w pętli z `await`) od wariantu 3 (`Task.WhenAll`) pod względem czasu i dlaczego?
 4. Po co `CultureInfo.InvariantCulture` przy `latitude.ToString()`?
 5. Czym różni się styl z `x:Key` od stylu bez klucza?
-6. Dlaczego `GeocodingResponse.Results` jest typu `List<City>?`?
+6. Dlaczego `GeocodingResponse.Results` jest typu `List<City>?`, a nie `List<City>`?
+
+---
+
+## Dodatek A: ulepszenia względem edycji 26 i 31
+
+| Gdzie | Edycje 26/31 | Edycja 32 | Dlaczego |
+|---|---|---|---|
+| Platforma | 26: .NET 8, `.sln`; 31: .NET 10, `.slnx` | .NET 10 LTS, `.slnx`, pakiety 10.0.x | aktualne LTS, format solucji VS 2026 |
+| Pobieranie HTTP | `WebClient` (przestarzały, ostrzeżenie SYSLIB0014) | `HttpClient`, jeden na aplikację | zalecenie Microsoft, wydajność |
+| Źródło temperatury w P01 | 26: scrapowanie Google po klasie CSS; 31: wttr.in bez `&m` | wttr.in z `?format=%t&m` | stabilne, zawsze Celsjusze |
+| Parsowanie | `Replace("+","").Replace("°C","")` | regex z grupą nazwaną, `InvariantCulture`, `FormatException` | czytelny błąd zamiast wyjątku konwersji |
+| Jednostki | napisy `"C"`, `"F"`, `"K"` | `enum TemperatureUnit` + `switch` wyrażenie | bezpieczeństwo typów |
+| P01 | klasa `Program` + `Main` lub `ConsoleApp1` bez treści | top‑level statements, `await` na najwyższym poziomie, dwa `catch` | nowoczesny szablon |
+| P02 obrazek | `Content` + `Copy always` | `Resource` | jeden plik exe |
+| P02 style | tylko `Window.Resources` | `Application.Resources`, styl niejawny, `BasedOn`, pędzle jako zasoby | pełen obraz systemu stylów |
+| P02 wariant „od razu gdy gotowy” | `GetAwaiter().OnCompleted` | `ContinueWith` + `IsCompletedSuccessfully` + `Dispatcher.Invoke` | widać obsługę błędu |
+| P02 wariant zalecany | brak obsługi błędów | `try/catch/finally`, blokada przycisku, `Stopwatch` w każdym wariancie | różnice czasowe widać w liczbach |
+| P02 metoda sync | `WebClient.DownloadString` | `HttpClient.Send` | ten sam klient w obu wariantach |
+| P03 JSON | Newtonsoft.Json, 18 pól w `City` | `System.Text.Json`, `GetFromJsonAsync`, tylko używane pola | bez dodatkowego pakietu |
+| P03 model | `Weather` z `Time` jako `string` | `Weather` z `DateTime`, wiatr, kod WMO, opis | model domenowy oddzielony od DTO |
+| P03 współrzędne | `latitude.ToString(InvariantCulture)` (31) | to samo + komentarz dlaczego | najczęstszy błąd na kursie |
+| P03 serwis | tworzy `HttpClient` w `using` przy każdym zapytaniu, sam czyta konfigurację | `HttpClient` i język przez konstruktor | gotowe pod DI w dniu 12 |
+| P03 konfiguracja | 31: `appsettings.json` z generatorem `SettingsSingleFileGenerator`, `AddUserSecrets` bez `UserSecretsId` | `Microsoft.Extensions.Configuration.Json`, sekcja `AppSettings`, `PreserveNewest` | ten sam mechanizm w API/Blazor/MAUI |
+| P03 błędy | wyjątek `HttpRequestException` zamykał aplikację | komunikaty w `tbStatus`, blokada przycisku | aplikacja nie wywraca się bez sieci |
+| P04 konsola (31) | kopia serwisu w osobnym projekcie | usunięta: serwis jest w P03, test robimy w oknie | mniej duplikatów |
+
+## Dodatek B: jak zweryfikowano materiał
+
+- Wszystkie trzy projekty zbudowano z .NET SDK 10.0.401 (`dotnet build 32Dzien11.slnx`), bez błędów i ostrzeżeń.
+- P01 uruchomiono z konsoli: `Warszawa` → `9.0 °C | 48.2 °F | 282.1 K`, `New York` → `14.0 °C`.
+- Logikę `OpenMeteoService` (geocoding, pogoda, brak wyników) przetestowano w osobnym programie konsolowym na tych samych plikach `Models/` i `Services/`: `Kraków` zwraca Kraków (Polska), Krakow (Wisconsin), Krakow am See (Niemcy); `xyzxyzxyz` zwraca pustą tablicę; pogoda mapuje się na `Weather` z opisem.
+- Okien WPF nie uruchamiano w środowisku weryfikacji (bez Windows). Sekcje 3–8 warto przejść przed zajęciami: w szczególności sprawdzić, że `Logo.png` wyświetla się po ustawieniu **Build Action: Resource**, a wariant 1 faktycznie zamraża okno (gdy wttr.in odpowiada szybko, dodajemy więcej miast).

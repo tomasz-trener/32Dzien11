@@ -1,11 +1,10 @@
 # 32Dzien11 – .NET 10: konsola, WPF, async, Open‑Meteo
 
-Edycja 32 kursu C#/.NET, dzień 11. Kod końcowy dnia oraz dwie instrukcje krok po kroku.
+Edycja 32 kursu C#/.NET, dzień 11. Kod końcowy dnia oraz instrukcja krok po kroku.
 
-| Plik | Dla kogo |
+| Plik | Zawartość |
 |---|---|
-| [INSTRUKCJA_PROWADZACY.md](INSTRUKCJA_PROWADZACY.md) | trener: co mówić, co klikać, co pokazywać (🗣️ ⌨️ 👀 💡) |
-| [INSTRUKCJA_STUDENT.md](INSTRUKCJA_STUDENT.md) | uczestnik: teoria w pigułce, kroki, punkty kontrolne, zadania |
+| [Instrukcja.md](Instrukcja.md) | plan dnia, teoria w pigułce, kroki z pełnym kodem, pokazy, punkty kontrolne, zadania, pytania i ulepszenia względem poprzednich edycji |
 
 ## Projekty
 
